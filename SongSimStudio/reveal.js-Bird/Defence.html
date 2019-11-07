@@ -41,7 +41,7 @@
 
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
-				<section>
+				<section data-transition="slide" data-background="#4d7e65" data-background-transition="zoom">
 					<h1>毕业设计模板</h1>
 					<h3>理工类</h3>
 					<p>
@@ -103,7 +103,7 @@
 						<h2>优势所在</h2>
 						<p>无需手动刷格式</p>
 						<p class="fragment">自动对各级标题编号</p>
-						<p><span class="fragment">图例</span> <span class="fragment">表格</span> <span class="fragment">文献</span> <span class="fragment">自动编号</span> </p>
+						<p><span class="fragment">图例</span> <span class="fragment">表格</span> <span class="fragment">文献</span> <span class="fragment highlight-red">自动编号</span> </p>
 						<p class="fragment">公式如何自动编号？</p>
 
 						<aside class="notes">
@@ -111,36 +111,37 @@
 						</aside>
 					</section>
 					<section>
-						<h2>Fragment Styles</h2>
-						<p>There's different types of fragments, like:</p>
-						<p class="fragment grow">grow</p>
-						<p class="fragment shrink">shrink</p>
-						<p class="fragment fade-out">fade-out</p>
+						<h2>待解决的问题</h2>
+						<p>一些毕设格式细节上的敲定与完善，例如:</p>
+						<p class="fragment grow">封面设计、页眉页脚</p>
+						<p class="fragment shrink">图标题、表标题、文献的样式</p>
 						<p>
-							<span style="display: inline-block;" class="fragment fade-right">fade-right, </span>
-							<span style="display: inline-block;" class="fragment fade-up">up, </span>
-							<span style="display: inline-block;" class="fragment fade-down">down, </span>
-							<span style="display: inline-block;" class="fragment fade-left">left</span>
+							<span style="display: inline-block;" class="fragment fade-right">摘要关键字、</span>
+							<span style="display: inline-block;" class="fragment fade-up">各级标题、</span>
+							<span style="display: inline-block;" class="fragment fade-down">正文、</span>
+							<span style="display: inline-block;" class="fragment fade-left">致谢等等样式</span>
 						</p>
-						<p class="fragment fade-in-then-out">fade-in-then-out</p>
-						<p class="fragment fade-in-then-semi-out">fade-in-then-semi-out</p>
-						<p>Highlight <span class="fragment highlight-red">red</span> <span class="fragment highlight-blue">blue</span> <span class="fragment highlight-green">green</span></p>
+						<p class="fragment fade-in-then-out">bug调试/试运行</p>
+						<p class="fragment fade-in-then-semi-out">精简界面/移除一些很少用到的功能</p>
+						<p>目标：<span class="fragment highlight-red">美观</span> <span class="fragment highlight-blue">高效</span> <span class="fragment highlight-green">一致性</span></p>
 					</section>
 				</section>
 
 
 				<section data-transition="slide" data-background="#4d7e65" data-background-transition="zoom">
-					<h2>待解决的问题</h2>
-					<p>
-						一些毕设格式细节上的敲定与完善
-					</p>
+					<h2>进度安排</h2>
+					<ol>
+						<li>毕设格式细节上的敲定</li>
+						<li>2020年1月底完成内部调试</li>
+						<li>2020年春季学期正式推广</li>
+					</ol>
 				</section>
 
 				<section data-transition="slide" data-background="#b5533c" data-background-transition="zoom">
 					<h2>结语</h2>
 					<h4>谢谢大家！</h4>
 					<br>
-					<h3>请各位专家批评指正！</h3>
+					<h3>请各位专家领导批评指正！</h3>
 				</section>
 
 			</div>
@@ -148,7 +149,13 @@
 		</div>
 
 		<script src="js/reveal.js"></script>
-
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
 		<script>
 
 			// More info https://github.com/hakimel/reveal.js#configuration
