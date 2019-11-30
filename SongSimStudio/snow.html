@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - particles - sprites</title>
+		<title>说好的下雪</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link type="text/css" rel="stylesheet" href="../css/main.css">
 		<script src="../js/three.min.js"></script>
-		<script src="../js/stats.min.js"></script>
-		<script src="../js/dat.gui.module.js"></script>
+		<!--script src="../js/stats.min.js"></script>
+		<script src="../js/dat.gui.module.js"></script-->
 	</head>
 	<body>
 
@@ -95,10 +95,10 @@
 
 				//
 
-				stats = new Stats();
-				document.body.appendChild( stats.dom );
+				//stats = new Stats();
+				//document.body.appendChild( stats.dom );
 
-				//
+				/*
 
 				var gui = new GUI();
 
@@ -118,6 +118,7 @@
 				} );
 
 				gui.open();
+				*/
 
 				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
@@ -181,7 +182,7 @@
 				requestAnimationFrame( animate );
 
 				render();
-				stats.update();
+				//stats.update();
 
 			}
 
