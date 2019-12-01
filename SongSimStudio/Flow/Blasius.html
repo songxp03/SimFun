@@ -12,6 +12,7 @@ var numNode=100;//节点数共100个
 var dx=0.1;//Space Step
 // 2f'''+ff''=0
 // f(0)=f'(0)=0 f(numNode)=1
+// 算法源于沈顾身，李保卫、吴(不会写，汗！)林《冶金传输原理》
 var func=new Array(numNode),dFun=new Array(numNode),d2Fun=new Array(numNode);
 func[0]=0.0;
 dFun[0]=0;dFun[numNode-1]=1.0;
