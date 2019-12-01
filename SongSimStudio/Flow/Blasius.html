@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+   <head>       <meta charset="utf-8">   </head>
+   <body>
+       <div id="container" style="width:auto; height:500px;"></div>
+       <br/>
+	   <div id="bugInfoHost"></div>
+       <script type="text/javascript" src="../../js/echarts.min.js"></script>
+       <script type="text/javascript">
+
+var numNode=100;//节点数共100个
+var dx=0.1;//Space Step
+// 2f'''+ff''=0
+// f(0)=f'(0)=0 f(numNode)=1
+var func=new Array(numNode),dFun=new Array(numNode),d2Fun=new Array(numNode);
+func[0]=0.0;
+dFun[0]=0;dFun[numNode-1]=1.0;
+var W1=0,W2=1.0;
+
+function iter(){
+    d2Fun[0]=(W1+W2)/2.0;
+    for(var K1,K2,K3,K4,L1,L2,L3,L4,M1,M2,M3,M4,i=0;i<numNode;i++){
+        K1=dFun[i]*dx;
+        L1=d2Fun[i]*dx;
+        M1=-func[i]*d2Fun[i]*dx/2.0;
+        K2=(dFun[i]+L1/2.0)*dx;
+        L2=(d2Fun[i]+M1/2.0)*dx;
+        M2=-(func[i]+K1/2.0)*(d2Fun[i]+M1/2.0)*dx/2.0;
+        K3=(dFun[i]+L2/2.0)*dx;
+        L3=(d2Fun[i]+M2/2.0)*dx;
+        M3=-(func[i]+K2/2.0)*(d2Fun[i]+M2/2.0)*dx/2.0;
+        K4=(dFun[i]+L3)*dx;
+        L4=(d2Fun[i]+M3)*dx;
+        M4=-(func[i]+K3)*(d2Fun[i]+M3)*dx/2.0;
+        func[i+1]=func[i]+(K1+2*K2+2*K3+K4)/6.0;
+        dFun[i+1]=dFun[i]+(L1+2*L2+2*L3+L4)/6.0;
+        d2Fun[i+1]=d2Fun[i]+(M1+2*M2+2*M3+M4)/6.0;
+    }
+}
+
+for(var i=0;i<30;i++){
+	iter();console.log(i);
+	if(Math.abs(dFun[numNode-1]-1)<1E-6){
+		showRoots();
+		break;
+	}else{
+		if(dFun[numNode-1]>1) W2=d2Fun[0];
+		if(dFun[numNode-1]<1) W1=d2Fun[0];
+	}
+}
+
+function showRoots(){
+	var table=document.createElement("table");
+	table.setAttribute("border","1");
+	table.setAttribute("align","center");
+
+	function create_thd_and_append_row(tr,text,tagNmae){
+		var tagNmae=(tagNmae=="td")?"td":"th";
+		var tag=document.createElement(tagNmae);
+		tag.innerHTML=text;
+		tr.appendChild(tag);
+	}
+
+	var tr=document.createElement("tr");
+
+	create_thd_and_append_row(tr,"mu","th");
+	create_thd_and_append_row(tr,"f","th");
+	create_thd_and_append_row(tr,"f'","th");
+	create_thd_and_append_row(tr,"f''","th");
+
+	table.appendChild(tr);
+
+	for(var i=0;i<numNode;i++){
+		console.log(i*dx,func[i],dFun[i],d2Fun[i]);
+		var tr=document.createElement("tr");
+
+		create_thd_and_append_row(tr,(i*dx).toFixed(2),"td");
+		create_thd_and_append_row(tr,func[i],"td");
+		create_thd_and_append_row(tr,dFun[i],"td");
+		create_thd_and_append_row(tr,d2Fun[i],"td");
+
+		table.appendChild(tr);
+	}
+
+	document.getElementById("bugInfoHost").appendChild(table);
+}
+
+var x=[],d=[];
+var rho=1000,mu=1E-3,u=1;
+for(var Re, i=0;i<100;i++){
+	x[i]=i/100;
+	Re=rho*u*x[i]/mu;
+	d[i]=5*x[i]/Math.sqrt(Re);
+}
+
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+
+option = {
+    xAxis: {type: 'category',data: x,    },
+    yAxis: {type: 'value'},
+    series: [{data: d,type: 'line'    }]
+};
+
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+   </body>
+</html>
