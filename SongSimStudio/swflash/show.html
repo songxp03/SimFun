@@ -5,10 +5,44 @@
 		<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0" />
 		<title>swf/flash播放器 via swf2js||命令行 ?swf/pump.swf</title>
 	</head>
-	<body style="margin: 0; padding:0; background-color: #000000;">
+	<body style="margin: 0; padding:0;">
+		<script type="text/javascript" src="../../js/dat.gui.module.js"></script>
 		<script type="text/javascript" src="./js/swf2js.js"></script>
 		<script type="text/javascript">
-		    swf2js.load('develop');
+			var oUrl=null;
+			var gui = new GUI();
+			const swfiles=['BF','CC','tiger'];
+
+			var Options = function() {
+				this.message = 'dat.gui';
+				this.swf = 'flash files';
+				this.speed = 0.8;
+				this.displayOutline = false;
+				this.button = function() {};
+			};
+
+			window.onload = function() {
+				swf2js.load('develop');
+
+				oUrl = this.location.href.toString();
+				console.log("oUrl:",oUrl);
+				var idx=oUrl.indexOf("?");
+				oUrl=oUrl.substr(0,idx);
+				console.log("oUrl:",oUrl);
+
+				var options = new Options();
+				gui.add(options, 'message');
+				gui.add(options, 'swf',swfiles).onChange( function ( value ) {
+					console.log(value);
+					var nUrl = oUrl+"?swf/"+value+".swf";
+					this.location = nUrl;
+					window.location.href=nUrl;	
+				} ).name('选择动画');;
+				gui.add(options, 'speed', -5, 5);
+				gui.add(options, 'displayOutline');
+				gui.add(options, 'button');		
+			};
+
 		</script>
 	</body>
 </html>
