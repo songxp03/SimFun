@@ -37,7 +37,7 @@
 			'Fe3C','BF','CC','eddy','tiger','lines'];
 
 			var Options = function() {
-				this.swf = 'flash files';
+				this.swf = 'Flash Files';
 			};
 
 			window.onload = function() {
@@ -50,12 +50,12 @@
 				console.log("oUrl:",oUrl);
 
 				var options = new Options();
-				gui.add(options, 'swf',swfiles).onChange( function ( value ) {
+				gui.add(options, 'swf',swfiles).onChange(function(value){
 					console.log(value);
 					var nUrl = oUrl+"?swf/"+value+".swf";
 					this.location = nUrl;
 					window.location.href=nUrl;	
-				} ).name('请选动画');
+				}).name('请选动画');
 
 				var customContainer = document.getElementById('my-gui-container');
 				customContainer.appendChild(gui.domElement);
