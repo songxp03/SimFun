@@ -52,6 +52,7 @@
 				var options = new Options();
 				gui.add(options, 'swf',swfiles).onChange(function(value){
 					console.log(value);
+					document.title="正在播放:"+value;
 					var nUrl = oUrl+"?swf/"+value+".swf";
 					this.location = nUrl;
 					window.location.href=nUrl;	
