@@ -10,7 +10,7 @@
 		<script type="text/javascript" src="./js/swf2js.js"></script>
 		<script type="text/javascript">
 			var oUrl=null;
-			var gui = new GUI();
+			var gui = new GUI({ autoPlace: false });
 			const swfiles=['BF','CC','tiger'];
 
 			var Options = function() {
@@ -25,7 +25,7 @@
 				swf2js.load('develop');
 
 				oUrl = this.location.href.toString();
-				console.log("oUrl:",oUrl);
+				//console.log("oUrl:",oUrl);
 				var idx=oUrl.indexOf("?");
 				oUrl=oUrl.substr(0,idx);
 				console.log("oUrl:",oUrl);
@@ -40,9 +40,12 @@
 				} ).name('选择动画');;
 				gui.add(options, 'speed', -5, 5);
 				gui.add(options, 'displayOutline');
-				gui.add(options, 'button');		
-			};
+				gui.add(options, 'button');
 
+				var customContainer = document.getElementById('my-gui-container');
+				customContainer.appendChild(gui.domElement);
+			};		
 		</script>
+		<div id="my-gui-container"></div>
 	</body>
 </html>
