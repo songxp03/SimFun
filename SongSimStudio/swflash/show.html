@@ -36,10 +36,6 @@
 			'pump/离心泵汽蚀现象',
 			'Fe3C','BF','CC','eddy','tiger','lines'];
 
-			var Options = function() {
-				this.swf = 'Flash Files';
-			};
-
 			window.onload = function() {
 				swf2js.load('develop');
 
@@ -49,14 +45,14 @@
 				oUrl=oUrl.substr(0,idx);
 				console.log("oUrl:",oUrl);
 
-				var options = new Options();
+				var options = {swf:'Flash Files'};
 				gui.add(options, 'swf',swfiles).onChange(function(value){
 					console.log(value);
 					document.title="正在播放:"+value;
 					var nUrl = oUrl+"?swf/"+value+".swf";
 					this.location = nUrl;
 					window.location.href=nUrl;	
-				}).name('请选动画');
+				}).name('选动画');
 
 				var customContainer = document.getElementById('my-gui-container');
 				customContainer.appendChild(gui.domElement);
