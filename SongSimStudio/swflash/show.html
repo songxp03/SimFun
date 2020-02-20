@@ -11,14 +11,33 @@
 		<script type="text/javascript">
 			var oUrl=null;
 			var gui = new GUI({ autoPlace: false });
-			const swfiles=['BF','CC','tiger'];
+			const swfiles=[
+			'pump/01离心泵原理',
+			'pump/02离心通风机',
+			'pump/03轴流管道泵',
+			'pump/04轴流通风机',
+			'pump/05涡旋泵',
+			'pump/06往复泵工作原理',
+			'pump/07往复泵原理',
+			'pump/08双往复泵',
+			'pump/09螺杆泵',
+			'pump/10罗茨鼓风机',
+			'pump/11径向柱塞泵工作原理',
+			'pump/12蒸汽喷射泵',
+			'pump/13水环式真空泵',
+			'pump/低压通风机工作示意图',
+			'pump/共振式消声器',
+			'pump/吸声原理',
+			'pump/复合减振器',
+			'pump/消声器',
+			'pump/片式和格式消声器',
+			'pump/离心泵串联',
+			'pump/离心泵并联',
+			'pump/离心泵汽蚀现象',
+			'Fe3C','BF','CC','eddy','tiger','lines'];
 
 			var Options = function() {
-				this.message = 'dat.gui';
 				this.swf = 'flash files';
-				this.speed = 0.8;
-				this.displayOutline = false;
-				this.button = function() {};
 			};
 
 			window.onload = function() {
@@ -31,16 +50,12 @@
 				console.log("oUrl:",oUrl);
 
 				var options = new Options();
-				gui.add(options, 'message');
 				gui.add(options, 'swf',swfiles).onChange( function ( value ) {
 					console.log(value);
 					var nUrl = oUrl+"?swf/"+value+".swf";
 					this.location = nUrl;
 					window.location.href=nUrl;	
-				} ).name('选择动画');;
-				gui.add(options, 'speed', -5, 5);
-				gui.add(options, 'displayOutline');
-				gui.add(options, 'button');
+				} ).name('请选动画');
 
 				var customContainer = document.getElementById('my-gui-container');
 				customContainer.appendChild(gui.domElement);
