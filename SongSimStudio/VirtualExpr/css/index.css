@@ -1,16 +1,53 @@
-#tooltip {
-  position: fixed;
-  left: 0;
-  top: 0;
-  min-width: 100px;
-  text-align: center;
-  padding: 5px 12px;
-  font-family: monospace;
-  background: #a0c020;
-  display: none;
-  opacity: 0;
-  border: 1px solid black;
-  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
-  transition: opacity 0.25s linear;
-  border-radius: 3px;
+body {
+	margin: 0;
+	background-color: #000;
+	color: #fff;
+	font-family: Monospace;
+	font-size: 13px;
+	line-height: 24px;
+}
+
+a {
+	color: #ff0;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+button {
+	cursor: pointer;
+	text-transform: uppercase;
+}
+
+canvas {
+	display: block;
+}
+
+#info {
+	position: absolute;
+	top: 0px;
+	width: 100%;
+	padding: 10px;
+	box-sizing: border-box;
+	text-align: center;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	z-index: 1; /* TODO Solve this in HTML */
+}
+
+a, button, input, select {
+	pointer-events: auto;
+}
+
+.dg.ac {
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	z-index: 2 !important; /* TODO Solve this in HTML */
 }

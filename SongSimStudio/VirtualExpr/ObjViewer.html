@@ -1,0 +1,140 @@
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>obj Viewer</title>
+      <style>
+        body {
+          margin: 0;
+          overflow: hidden;
+        }
+        .label {
+          color: #0F0;
+          font-family: sans-serif;
+          padding: 2px;
+          background: rgba( 0, 0, 0, .6 );
+        }
+      </style>
+      <link type="text/css" rel="stylesheet" href="css/index.css">
+    </head>
+    <body>
+    </body>
+    <script src="src/dat.gui.min.js"></script>
+    <script src="../../js/three.min.js"></script>
+    <script src="src/DDSLoader.js"></script>
+    <script src="src/MTLLoader.js"></script>
+    <script src="src/OBJLoader.js"></script>
+    <script src="src/OrbitControls.js"></script>
+    <script type="text/javascript">
+ 
+var scene = new THREE.Scene();
+var camera,renderer,labelRenderer;
+
+addLights();
+addCameras();
+addMisc();
+addControllers();
+loadModels();
+render();
+
+function QueryPara(name){
+    var regExp = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+    var info = window.location.search.substr(1).match(regExp);
+    if(info!=null)return  unescape(info[2]); return null;
+}
+
+function render() {
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+}
+
+function addLights(){
+    var dLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+    dLight.castShadow=true;
+    dLight.position.set(0,80,80);
+    //Set up shadow properties for the light
+    dLight.shadow.camera.near = 20; //产生阴影的最近距离
+    dLight.shadow.camera.far = 200; //产生阴影的最远距离
+    dLight.shadow.camera.left = -200; //产生阴影距离位置的最左边位置
+    dLight.shadow.camera.right = 200; //最右边
+    dLight.shadow.camera.top = 200; //最上边
+    dLight.shadow.camera.bottom = -80; //最下面
+    scene.add( dLight );
+
+    var ambient = new THREE.AmbientLight(0x888888);
+    scene.add(ambient);
+}
+
+function addCameras(){
+    var width = window.innerWidth; //
+    var height = window.innerHeight; //
+    var k = width / height; //
+    var s = 100; //
+    //
+    camera = new THREE.OrthographicCamera(-s * k, s * k, s, -s, 1, 3000);
+    camera.position.set(200, 300, 200); //
+    camera.lookAt(scene.position); //
+
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setSize(width, height);
+    renderer.setClearColor(0xb9d3ff,1);//
+    // 开启阴影支持
+    renderer.shadowMap.enabled = true;
+    // 阴影类型
+    renderer.shadowMap.type = THREE.BasicShadowMap;//THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement); //body
+}
+
+function addMisc(){
+    scene.add(new THREE.AxesHelper(300));
+
+    window.addEventListener( 'resize', onWindowResize, false );
+}
+
+
+function addControllers(){
+    var controls = new THREE.OrbitControls(camera,renderer.domElement);
+}
+
+var manager = new THREE.LoadingManager();
+manager.addHandler( /\.dds$/i, new DDSLoader() );
+function onProgress( xhr ) {
+  if ( xhr.lengthComputable ) {
+      var percentComplete = xhr.loaded / xhr.total * 100;
+      console.log( 'model ' + Math.round( percentComplete, 2 ) + '% downloaded' );
+  }
+}
+function onError() {}
+function loadModels(){
+    var objFile=QueryPara("obj")||'GateValve.obj';
+    new MTLLoader( manager )
+        .setPath( 'models/' )
+        .load( 'glass.mtl', function ( materials ) {
+            materials.preload();
+            console.log("materials:",materials);
+            new OBJLoader( manager )
+                .setMaterials( materials )
+                .setPath( 'models/' )
+                .load( objFile, function ( obj ) {
+                    obj.scale.set(1,1,1);
+                    obj.position.set(0,0,0);
+                    obj.rotation.x+=0;
+                    obj.castShadow=true;
+                    scene.add( obj );
+                }, onProgress, onError );
+        } );
+}
+
+function onWindowResize() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( width, height );
+    render();
+}
+
+    </script>
+  </html>
