@@ -5,13 +5,32 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link type="text/css" rel="stylesheet" href="css/main.css">
+		<style>
+			#drawing-canvas {
+				position: absolute;
+				background-color: #eeeeee;
+				top: 0px;
+				left: 0px;
+				z-index: 3000;
+				cursor: crosshair;
+				border:1px solid #F00;
+			}
+			.label {
+				color: #0F0;
+				font-family: sans-serif;
+				padding: 2px;
+				background: rgba( 0, 0, 0, .6 );
+	        }
+		</style>
 	</head>
 	<body>
 		<div id="info">
-			换热器设计<br/><br/>
+			换热器设计计算-预览-导出<br/><br/>
 		</div>
+		<canvas id="drawing-canvas" height="360" width="360"></canvas>
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
+		<script src="js/CSS2DRenderer.js"></script>
 		<script src="js/STLExporter.js"></script>
 		<script src="js/stats.min.js"></script>
 		<script src="js/dat.gui.module.js"></script>

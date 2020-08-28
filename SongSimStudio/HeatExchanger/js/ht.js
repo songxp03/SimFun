@@ -1,5 +1,6 @@
 var container, stats;
-var camera, scene, renderer, controls,lightL,lightR;
+var camera, scene, renderer,labelRenderer, controls,lightL,lightR;
+var textureLoader = new THREE.TextureLoader();
 var raycaster = new THREE.Raycaster();
 
 var mouse = new THREE.Vector2();
@@ -33,7 +34,9 @@ var tubeArrange={
 	d_tubes:21.5,//管道中心距dtb
 	tubeArray:'7,8,9,10,9,8,7,6',//管道排列方式
 	Download_STL_File:()=>{exportSTL()},//导出3D-stl文件
-	Download_DXF_File:()=>{exportDXF()},//导出2D-dxf图纸
+	Show_3D_Model:()=>{placeTubes()},//导出3D-stl文件
+	Download_DXF_File:()=>{exportDXF(true)},//导出2D-dxf图纸
+	Show_DXF_File:()=>{exportDXF(false)},//显示2D-dxf图纸
 };
 
 var params = {
@@ -63,50 +66,47 @@ function init() {
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.shadowMap.enabled = true;
+	renderer.setClearColor( 0xbfd1e5 );
 	// todo - support pixelRatio in this demo
 	renderer.setSize( width, height );
 	document.body.appendChild( renderer.domElement );
 
 	scene = new THREE.Scene();
 
-	camera = new THREE.PerspectiveCamera( 45, width / height, 0.1, 100 );
-	camera.position.set( 0, 0, 8 );
-
-	controls = new THREE.OrbitControls( camera, renderer.domElement );
-	controls.minDistance = 5;
-	controls.maxDistance = 40;
-	controls.enablePan = false;
-	controls.enableDamping = true;
-	controls.dampingFactor = 0.05;
+	camera = new THREE.PerspectiveCamera( 45, width / height, 0.1, 3000 );
+	camera.position.set(0, 0, 2000);
 
 	scene.add( new THREE.AmbientLight( 0xaaaaaa, 0.2 ) );
 
-	lightL=createDLight({x:-1,y:1,z:0});
+	lightL=createDLight({x:-100,y:100,z:0});
 	scene.add( lightL );
 	//scene.add( new THREE.DirectionalLightHelper( lightL, 5 ) );
 
-	lightR=createDLight({x:+1,y:1,z:0});
+	lightR=createDLight({x:+100,y:100,z:0});
 	scene.add( lightR );
 	//scene.add( new THREE.DirectionalLightHelper( lightR, 5 ) );
 
-	scene.add( new THREE.AxesHelper( 5 ) );//The X axis is red. The Y axis is green. The Z axis is blue.
+	//scene.add( new THREE.AxesHelper( 5 ) );//The X axis is red. The Y axis is green. The Z axis is blue.
 
-	// tube model
-	//group.add( sinTube() );
-	//group.add( createTorus() );
-	placeTubes();
 
 	scene.add( group );
 	group.add( obj3d );
 
 	var floorMaterial = new THREE.MeshLambertMaterial( { side: THREE.DoubleSide } );
 
-	var floorGeometry = new THREE.PlaneBufferGeometry( 12, 12 );
+	var floorGeometry = new THREE.PlaneBufferGeometry( 150, 150 );
 	var floorMesh = new THREE.Mesh( floorGeometry, floorMaterial );
 	floorMesh.rotation.x -= Math.PI * 0.5;
-	floorMesh.position.y -= 1.5;
+	floorMesh.position.y -= 15;
 	group.add( floorMesh );
 	floorMesh.receiveShadow = true;
+	textureLoader.load("img/grid.png", function (texture) {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(40, 40);
+        floorMesh.material.map = texture;
+        floorMesh.material.needsUpdate = texture;
+    });
 
 	//
 	stats = new Stats();
@@ -125,6 +125,20 @@ function init() {
 	effectFXAA = new ShaderPass( FXAAShader );
 	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
 	composer.addPass( effectFXAA );
+
+	labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize( window.innerWidth, window.innerHeight );
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    document.body.appendChild( labelRenderer.domElement );
+
+	//controls = new THREE.OrbitControls( camera, renderer.domElement );
+	controls = new THREE.OrbitControls(camera,labelRenderer.domElement);
+	controls.minDistance = 0.1;
+	controls.maxDistance = 120;
+	controls.enablePan = false;
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.05;
 
 	window.addEventListener( 'resize', onWindowResize, false );
 
@@ -189,56 +203,86 @@ function animate() {
 
 	controls.update();
 	composer.render();
+	labelRenderer.render( scene, camera );
 
 	stats.end();
 }
 
-function placeTubes(){
+function isEven(num){
+	if(num%2) return 0;
+	else return 1;
+}
+
+function getParameters(){
+	let {di,db,dt,delta_t,Sf}=finsFeatures;
+	console.log(di,db,"dt=",dt,delta_t,Sf);
+
+	let ad=Math.PI*dt*delta_t/Sf/1000;
+	let af=Math.PI*(dt*dt-db*db)/Sf/2/1000;
+	let ab=Math.PI*db*(Sf-delta_t)/Sf/1000;
+	let ai=Math.PI*di/1000;
+	let aof=ad+af+ab;
+	console.log(ad,af,ab,ai,aof);
+
+	let {Qk,qo,tw1,tw2,Cp,rho,w}=tubeFeatures;
+
+	let Aof=Qk/qo;
+	let L=Aof/aof;
+	let qv=Qk/rho/Cp/Math.abs(tw1-tw2);
+	let Z=qv/(Math.PI*di*di*w/4)*1000000;
+	console.log(L,qv,Z);
+	Z=Math.round(Z);
+
 	let {N,d_tubes,tubeArray}=tubeArrange;
-	//let l=L/N/Z;
-	//console.log(l);
+	let l=L/N/Z;
+	console.log("l:",l);
 
 	tubeArray=tubeArray.split(',');
 	console.log(tubeArray,d_tubes);
 
-	function isEven(num){
-		if(num%2) return 0;
-		else return 1;
-	}
+	return {l,dt,d_tubes,tubeArray};
+}
 
-	let x0=250;
-	let y0=250;
+function placeTubes(){
+	let {l,dt,d_tubes,tubeArray}=getParameters();
+
+	let x0=0,y0=0;
 	console.log(x0,y0);
 
-	//d.drawCircle(x0,y0-100,120);
 	let v0=new THREE.Vector3(0,0,0);
-	let v1=new THREE.Vector3(x0/15-15,(y0-100)/15,-30);
-	let v2=new THREE.Vector3(x0/15-15,(y0-100)/15,+30);
-	let v3=new THREE.Vector3(x0/15-15,(y0-100)/15,-30);
+	let v1=new THREE.Vector3(x0,y0,-l/2*1000);
+	let v2=new THREE.Vector3(x0,y0,l/2*1000);
+	let v3=new THREE.Vector3(x0,y0,-l/2*1000);
 	v3.multiplyScalar(0.1);
-	let v4=new THREE.Vector3(x0/15-15,(y0-100)/15,+30);
+	let v4=new THREE.Vector3(x0,y0,+l/2*1000);
 	v4.multiplyScalar(0.1);
-	obj3d.add(tubeFactory(v1,v2,v0,10,true));
-	obj3d.add(sphereFactory(v3,10,true,Math.PI,Math.PI*2));
-	obj3d.add(sphereFactory(v4,10,true,Math.PI,Math.PI*2));
+	let tmp=tubeFactory(v1,v2,v0,120,true);
+	obj3d.add(tmp);
+	createTag("壳体",10,tmp);
+	tmp=sphereFactory(v3,120,true,Math.PI,Math.PI*2)
+	obj3d.add(tmp);
+	createTag("左侧壳体",10,tmp);
+	tmp=sphereFactory(v4,120,true,Math.PI,Math.PI*2);
+	obj3d.add(tmp);
+	createTag("右侧壳体",10,tmp);
 
 	for(let i=0,len=tubeArray.length,x,y;i<len;i++){
 		for(let j=0;j<tubeArray[i]/2;j++){
 			x=x0+(isEven(tubeArray[i])/2+j)*d_tubes;
 			y=y0+i*d_tubes*Math.sqrt(3)/2;
-			y=450-y;
-			let v1=new THREE.Vector3(x/15-15,y/15,-30);
-			let v2=new THREE.Vector3(x/15-15,y/15,+30);
-			obj3d.add(tubeFactory(v1,v2,v0,0.5));
+			y-=50;
+			let v1=new THREE.Vector3(x,y,-l/2*1000);
+			let v2=new THREE.Vector3(x,y,+l/2*1000);
+			obj3d.add(tubeFactory(v1,v2,v0,dt/2));
 		}
 
 		for(var j=0;j<tubeArray[i]/2;j++){
 			x=x0-(isEven(tubeArray[i])/2+j)*d_tubes;
 			y=y0+i*d_tubes*Math.sqrt(3)/2;
-			y=450-y;
-			let v1=new THREE.Vector3(x/15-15,y/15,-30);
-			let v2=new THREE.Vector3(x/15-15,y/15,+30);
-			obj3d.add(tubeFactory(v1,v2,v0,0.5));
+			y-=50;
+			let v1=new THREE.Vector3(x,y,-l/2*1000);
+			let v2=new THREE.Vector3(x,y,+l/2*1000);
+			obj3d.add(tubeFactory(v1,v2,v0,dt/2));
 		}
 	}
 }
@@ -350,7 +394,7 @@ function initGUI(){	// Init gui
 
 	tubeGUI.add( tubeFeatures, 'tw2', 35, 40 ).onChange( function ( value ) {
 		tubeFeatures.tw2 = Number( value );
-	} ).name('进水温度tw2');
+	} ).name('出水温度tw2');
 
 	tubeGUI.add( tubeFeatures, 'Cp', 4179, 4300 ).onChange( function ( value ) {
 		tubeFeatures.Cp = Number( value );
@@ -380,23 +424,25 @@ function initGUI(){	// Init gui
 	} ).name('管道布局');
 
 	miscGUI.add(tubeArrange, 'Download_DXF_File').name('导出2D-dxf文件');
+	miscGUI.add(tubeArrange, 'Show_DXF_File').name('显示2D-dxf文件');
+	miscGUI.add(tubeArrange, 'Show_3D_Model').name('显示预览3D-模型文件');
 	miscGUI.add(tubeArrange, 'Download_STL_File').name('导出3D-stl文件');
 
 	let outlineGUI = gui.addFolder('3D显示属性');
 
-	outlineGUI.add( params, 'edgeStrength', 0.01, 10 ).onChange( function ( value ) {
+	outlineGUI.add( params, 'edgeStrength', 0.01, 10 ).name('边缘强度').onChange( function ( value ) {
 		outlinePass.edgeStrength = Number( value );
 	} );
 
-	outlineGUI.add( params, 'edgeGlow', 0.0, 1 ).onChange( function ( value ) {
+	outlineGUI.add( params, 'edgeGlow', 0.0, 1 ).name('辉光效果').onChange( function ( value ) {
 		outlinePass.edgeGlow = Number( value );
 	} );
 
-	outlineGUI.add( params, 'edgeThickness', 1, 4 ).onChange( function ( value ) {
+	outlineGUI.add( params, 'edgeThickness', 1, 4 ).name('边缘宽度').onChange( function ( value ) {
 		outlinePass.edgeThickness = Number( value );
 	} );
 
-	outlineGUI.add( params, 'pulsePeriod', 0.0, 5 ).onChange( function ( value ) {
+	outlineGUI.add( params, 'pulsePeriod', 0.0, 5 ).name('边缘闪烁').onChange( function ( value ) {
 		outlinePass.pulsePeriod = Number( value );
 	} );
 
@@ -408,11 +454,11 @@ function initGUI(){	// Init gui
 
 	let conf = new Configuration();
 
-	outlineGUI.addColor( conf, 'visibleEdgeColor' ).onChange( function ( value ) {
+	outlineGUI.addColor( conf, 'visibleEdgeColor' ).name('可视边框颜色').onChange( function ( value ) {
 		outlinePass.visibleEdgeColor.set( value );
 	} );
 
-	outlineGUI.addColor( conf, 'hiddenEdgeColor' ).onChange( function ( value ) {
+	outlineGUI.addColor( conf, 'hiddenEdgeColor' ).name('被遮边框颜色').onChange( function ( value ) {
 		outlinePass.hiddenEdgeColor.set( value );
 	} );
 }
@@ -435,108 +481,59 @@ var exportSTL=function (){
 	downloadBlob(blob,'换热器模型.stl');
 };
 
-var exportDXF=function (){
-	let {di,db,dt,delta_t,Sf}=finsFeatures;
-	console.log(di,db,dt,delta_t,Sf);
+var exportDXF=function (dxf=false){
+	let {l,dt,d_tubes,tubeArray}=getParameters();
 
-	let ad=Math.PI*dt*delta_t/Sf/1000;
-	let af=Math.PI*(dt*dt-db*db)/Sf/2/1000;
-	let ab=Math.PI*db*(Sf-delta_t)/Sf/1000;
-	let ai=Math.PI*di/1000;
-	let aof=ad+af+ab;
-	console.log(ad,af,ab,ai,aof);
+	var myCanvas=document.getElementById("drawing-canvas");
+	var ctx=myCanvas.getContext("2d");
 
-	let {Qk,qo,tw1,tw2,Cp,rho,w}=tubeFeatures;
-
-	let Aof=Qk/qo;
-	let L=Aof/aof;
-	let qv=Qk/rho/Cp/Math.abs(tw1-tw2);
-	let Z=qv/(Math.PI*di*di*w/4)*1000000;
-	console.log(L,qv,Z);
-	Z=Math.round(Z);
-
-	let {N,d_tubes,tubeArray}=tubeArrange;
-	let l=L/N/Z;
-	console.log(l);
-
-	tubeArray=tubeArray.split(',');
-	console.log(tubeArray,d_tubes);
-
-	function isEven(num){
-		if(num%2) return 0;
-		else return 1;
+	function drawCircle(ctx,x,y,r){
+		ctx.beginPath();
+		ctx.arc(x,y,r,0,2*Math.PI);
+		ctx.stroke();
 	}
 
 	let Drawing = require('Drawing');
 	let d = new Drawing();
 
-	var x0=250;
-	var y0=250;
+	var x0=180,y0=250;
 	console.log(x0,y0);
-
-	d.drawCircle(x0,y0-100,120);
+	ctx.clearRect(0,0,myCanvas.width,myCanvas.height);  
+	drawCircle(ctx,x0,y0-100,120);
+	if(dxf)d.drawCircle(x0,y0-100,120);
 	for(var i=0,len=tubeArray.length,x,y;i<len;i++){
 		for(var j=0;j<tubeArray[i]/2;j++){
 			x=x0+(isEven(tubeArray[i])/2+j)*d_tubes;
 			y=y0+i*d_tubes*Math.sqrt(3)/2;
 			y=450-y;
-			d.drawCircle(x, y, dt/2);
+			drawCircle(ctx,x,y,dt/2);
+			if(dxf)d.drawCircle(x, y, dt/2);
 		}
 		for(var j=0;j<tubeArray[i]/2;j++){
 			x=x0-(isEven(tubeArray[i])/2+j)*d_tubes;
 			y=y0+i*d_tubes*Math.sqrt(3)/2;
 			y=450-y;
-			d.drawCircle(x, y, dt/2);
+			drawCircle(ctx,x,y,dt/2);
+			if(dxf)d.drawCircle(x, y, dt/2);
 		}
 	}
+    ctx.font = "16px serif";
+    ctx.fillText("换热器管道布置图", 100, 320);
 
-	let blob=new Blob([d.toDxfString()], {type: 'application/dxf'});
-	downloadBlob(blob,"管道排列布局.dxf");
+	if(dxf){
+		let blob=new Blob([d.toDxfString()], {type: 'application/dxf'});
+		downloadBlob(blob,"管道排列布局.dxf");
+	}
 };
 
-function sinTube(){
-	function CustomSinCurve( scale ) {
-		THREE.Curve.call( this );
-		this.scale = ( scale === undefined ) ? 1 : scale;
-	}
+function createTag(text,RADIUS=1,parentObj){
+    var div = document.createElement( 'div' );
+    div.className = 'label';
+    div.textContent = text;
+    div.style.marginTop = '-1em';
+    var tag = new CSS2DObject( div );
+    tag.position.set( 0, RADIUS, 0 );
+    parentObj.add( tag );
 
-	CustomSinCurve.prototype = Object.create( THREE.Curve.prototype );
-	CustomSinCurve.prototype.constructor = CustomSinCurve;
-	CustomSinCurve.prototype.getPoint = function ( t ) {
-		var tx = t * 3 - 1.5;
-		var ty = Math.sin( 2 * Math.PI * t );
-		var tz = 0;
-
-		return new THREE.Vector3( tx, ty, tz ).multiplyScalar( this.scale );
-
-	};
-
-	var tubePath = new CustomSinCurve( 10 );
-	var tubeGeometry = new THREE.TubeGeometry( tubePath, 20, 2, 8, false );
-	var tubeMaterial = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide });//渲染两面
-	tubeMaterial.color.setHSL( Math.random(), 1.0, 0.3 );
-	var tubeMesh = new THREE.Mesh( tubeGeometry, tubeMaterial );
-
-	tubeMesh.position.x = 0;
-	tubeMesh.position.y = 0;
-	tubeMesh.position.z = 2;
-
-	tubeMesh.scale.multiplyScalar( 0.1 );
-
-	tubeMesh.receiveShadow = true;
-	tubeMesh.castShadow = true;
-
-	return tubeMesh;
-}
-
-function createTorus(){
-	var geometry = new THREE.TorusBufferGeometry( 1, 0.3, 16, 100 );
-	var material = new THREE.MeshPhongMaterial( { color: 0xffaaff } );
-	var torus = new THREE.Mesh( geometry, material );
-	torus.position.z = - 4;
-	
-	torus.receiveShadow = true;
-	torus.castShadow = true;
-
-	return torus;
+    return div;
 }
