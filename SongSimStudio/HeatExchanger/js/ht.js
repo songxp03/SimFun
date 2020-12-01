@@ -258,13 +258,9 @@ function placeTubes(){
 	v4.multiplyScalar(0.1);
 	let tmp=tubeFactory(v1,v2,v0,120,true);
 	obj3d.add(tmp);
-	createTag("壳体",10,tmp);
-	tmp=sphereFactory(v3,120,true,Math.PI,Math.PI*2)
-	obj3d.add(tmp);
-	createTag("左侧壳体",10,tmp);
-	tmp=sphereFactory(v4,120,true,Math.PI,Math.PI*2);
-	obj3d.add(tmp);
-	createTag("右侧壳体",10,tmp);
+	createTag("潜水泵",10,tmp);
+	obj3d.add(sphereFactory(v3,120,true,Math.PI,Math.PI*2));
+	obj3d.add(sphereFactory(v4,120,true,Math.PI,Math.PI*2));
 
 	for(let i=0,len=tubeArray.length,x,y;i<len;i++){
 		for(let j=0;j<tubeArray[i]/2;j++){
@@ -394,7 +390,7 @@ function initGUI(){	// Init gui
 
 	tubeGUI.add( tubeFeatures, 'tw2', 35, 40 ).onChange( function ( value ) {
 		tubeFeatures.tw2 = Number( value );
-	} ).name('出水温度tw2');
+	} ).name('进水温度tw2');
 
 	tubeGUI.add( tubeFeatures, 'Cp', 4179, 4300 ).onChange( function ( value ) {
 		tubeFeatures.Cp = Number( value );
@@ -430,19 +426,19 @@ function initGUI(){	// Init gui
 
 	let outlineGUI = gui.addFolder('3D显示属性');
 
-	outlineGUI.add( params, 'edgeStrength', 0.01, 10 ).name('边缘强度').onChange( function ( value ) {
+	outlineGUI.add( params, 'edgeStrength', 0.01, 10 ).onChange( function ( value ) {
 		outlinePass.edgeStrength = Number( value );
 	} );
 
-	outlineGUI.add( params, 'edgeGlow', 0.0, 1 ).name('辉光效果').onChange( function ( value ) {
+	outlineGUI.add( params, 'edgeGlow', 0.0, 1 ).onChange( function ( value ) {
 		outlinePass.edgeGlow = Number( value );
 	} );
 
-	outlineGUI.add( params, 'edgeThickness', 1, 4 ).name('边缘宽度').onChange( function ( value ) {
+	outlineGUI.add( params, 'edgeThickness', 1, 4 ).onChange( function ( value ) {
 		outlinePass.edgeThickness = Number( value );
 	} );
 
-	outlineGUI.add( params, 'pulsePeriod', 0.0, 5 ).name('边缘闪烁').onChange( function ( value ) {
+	outlineGUI.add( params, 'pulsePeriod', 0.0, 5 ).onChange( function ( value ) {
 		outlinePass.pulsePeriod = Number( value );
 	} );
 
@@ -454,11 +450,11 @@ function initGUI(){	// Init gui
 
 	let conf = new Configuration();
 
-	outlineGUI.addColor( conf, 'visibleEdgeColor' ).name('可视边框颜色').onChange( function ( value ) {
+	outlineGUI.addColor( conf, 'visibleEdgeColor' ).onChange( function ( value ) {
 		outlinePass.visibleEdgeColor.set( value );
 	} );
 
-	outlineGUI.addColor( conf, 'hiddenEdgeColor' ).name('被遮边框颜色').onChange( function ( value ) {
+	outlineGUI.addColor( conf, 'hiddenEdgeColor' ).onChange( function ( value ) {
 		outlinePass.hiddenEdgeColor.set( value );
 	} );
 }
