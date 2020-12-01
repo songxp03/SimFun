@@ -258,7 +258,7 @@ function placeTubes(){
 	v4.multiplyScalar(0.1);
 	let tmp=tubeFactory(v1,v2,v0,120,true);
 	obj3d.add(tmp);
-	createTag("潜水泵",10,tmp);
+	createTag("管壳式换热器",10,tmp);
 	obj3d.add(sphereFactory(v3,120,true,Math.PI,Math.PI*2));
 	obj3d.add(sphereFactory(v4,120,true,Math.PI,Math.PI*2));
 
