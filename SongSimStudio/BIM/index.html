@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - loaders - IFC loader</title>
+		<title>web BIM</title>
 		<meta charset="utf-8" />
 		<meta
 			name="viewport"
@@ -20,12 +20,12 @@
 		</div>
 
 		<script type="module">
-			let scene, camera, renderer;
+			let scene, camera, renderer,controls;
+			var clock = new THREE.Clock();
 
 			init();
 
 			function init() {
-
 				//Scene
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( 0x8cc7de );
@@ -72,6 +72,7 @@
 
 				//Controls
 				const controls = new THREE.OrbitControls( camera, renderer.domElement );
+				
 				controls.addEventListener( 'change', render );
 
 				window.addEventListener( 'resize', onWindowResize );
@@ -91,9 +92,7 @@
 			}
 
 			function render() {
-
 				renderer.render( scene, camera );
-
 			}
 
 		</script>
