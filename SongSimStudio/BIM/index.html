@@ -17,7 +17,7 @@
 	<body>
 		<div id="info">
 			<div class="text-success">
-				<span class="sr-only">web BIM show</span>
+				<span class="sr-only">web BIM show</span><br/>
 				<script type="text/javascript" src="//rf.revolvermaps.com/0/0/3.js?i=58x4kn61rqm&amp;b=0&amp;s=40&amp;m=2&amp;cl=ffffff&amp;co=010020&amp;cd=aa0000&amp;v0=60&amp;v1=60&amp;r=1" async="async"></script>
 				<script>
 					var _hmt = _hmt || [];
@@ -54,6 +54,11 @@
 				const cube = new THREE.Mesh( geometry, material );
 				scene.add( cube );
 
+				const geometry2 = new THREE.SphereGeometry( 15, 32, 32 );
+				const material2 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+				const sphere = new THREE.Mesh( geometry2, material2 );
+				scene.add( sphere );
+
 				//Lights
 				const directionalLight1 = new THREE.DirectionalLight( 0xffeeff, 0.8 );
 				directionalLight1.position.set( 1, 1, 1 );
@@ -70,10 +75,8 @@
 				const ifcLoader = new IFCLoader();
 				ifcLoader.setWasmPath('');//这里要万分注意
 				ifcLoader.load( 'models/rac_advanced_sample_project.ifc', function ( model ) {
-
 					scene.add( model );
 					render();
-
 				} );
 
 				//Renderer
@@ -94,13 +97,11 @@
 			}
 
 			function onWindowResize() {
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
 				render();
-
 			}
 
 			function render() {
