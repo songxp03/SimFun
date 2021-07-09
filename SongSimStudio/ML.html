@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts-stat/dist/ecStat.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.14.2/dist/tf.min.js"></script>
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <div class="container">
+      <h5>分别输入x坐标和y坐标，并用英文逗号隔开</h5>
+      <form class="row g-3">
+        <div class="input-group mb-3">
+          <span class="input-group-text">x坐标</span>
+          <input type="text" class="form-control" id="xs" placeholder="x坐标，如填写：1,2,3" value="2.602, 2.903, 3.079, 3.204, 3.301, 3.38, 3.447, 3.505, 3.556" aria-label="xs" aria-describedby="basic-addon1">
+        </div>
+        <div class="input-group mb-3">
+          <span class="input-group-text">y坐标</span>
+          <input type="text" class="form-control" id="ys" placeholder="y坐标，如填写：2,4,8" value="1.047, 1.187, 1.269, 1.328, 1.373, 1.41, 1.441, 1.468, 1.492" aria-label="ys" aria-describedby="basic-addon2">
+        </div>
+        <div class="col-12">
+          <input type="button" class="btn btn-primary" onclick="learnCoefficients()" value="计算"></input>
+        </div>
+      </form>
+    </div>
+
+    <div class="row w100" id="container" style="height: 500px;border-color: black;"></div>
+
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">计算结果</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="resultDiv">
+            hi
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            <button type="button" class="btn btn-primary">重新计算</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="info">
+      <a href="https://songxp03.github.io/SimFun/SimFun" target="_blank" rel="noopener"> 线性回归</a>
+      by Octree via tensorflow.js<br/>
+      <script type="text/javascript" src="//rf.revolvermaps.com/0/0/3.js?i=58x4kn61rqm&amp;b=0&amp;s=40&amp;m=2&amp;cl=ffffff&amp;co=010020&amp;cd=aa0000&amp;v0=60&amp;v1=60&amp;r=1" async="async"></script>
+      <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?c92893cdabb11ad8ca139c33152761e2";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+      </script>
+    </div>
+
+    <script type="text/javascript">
+      var m,n,max,min,realK,realB,sx,sy;
+
+      //2.602, 2.903, 3.079, 3.204, 3.301, 3.38, 3.447, 3.505, 3.556
+      //1.047, 1.187, 1.269, 1.328, 1.373, 1.41, 1.441, 1.468, 1.492
+      function testNu(){
+        for(var i=1;i<10;i++){
+          var Re=400*i;
+          var Nu=0.683*Math.pow(Re,0.466);
+
+          console.log(Math.log10(Re),Math.log10(Nu));
+        }
+      }
+      testNu();
+
+      function generateData(numPoints, coeff, sigma = 0.04) {
+        var x=document.getElementById("xs").value.split(',');
+        var y=document.getElementById("ys").value.split(',');
+
+        x= Array.from(x).map((x,i) => {return parseFloat(x)});
+        y= Array.from(y).map((y,i) => {return parseFloat(y)});
+        sx=x;sy=y;
+        console.log("Original xy data=",x,y);
+
+        max = Math.max.apply(null, x);
+        min = Math.min.apply(null, x);
+        console.log("min & max:",min,max);
+
+        var scaledX=x.map(x=>{return 2*(x-min)/(max-min)-1;});
+        console.log("scaledX:",scaledX);
+
+        m=2/(max-min);
+        n=-2*min/(max-min)-1;
+        console.log("m,n:",m,n);
+
+        return tf.tidy(() => {    
+          const xs = tf.tensor(scaledX);
+          const ys = tf.tensor(y);
+          return {xs:xs, ys: ys};
+        })
+      }
+      
+      // Step 1. Set up variables, these are the things we want the model
+      const k = tf.variable(tf.scalar(Math.random()));
+      const b = tf.variable(tf.scalar(Math.random()));
+      
+      
+      // Step 2. Create an optimizer, we will use this later. You can play
+      const numIterations = 75;
+      const learningRate = 0.5;
+      const optimizer = tf.train.sgd(learningRate);
+      
+      // Step 3. Write our training process functions.
+      function predict(x) {// y = k * x + b
+        return tf.tidy(() => {return k.mul(x).add(b);});
+      }
+      
+      function loss(prediction, labels) {
+        const error = prediction.sub(labels).square().mean();
+        return error;
+      }
+      
+      async function train(xs, ys, numIterations) {
+        for (let iter = 0; iter < numIterations; iter++) {
+      
+          optimizer.minimize(() => {
+            // Feed the examples into the model
+            const pred = predict(xs);
+            return loss(pred, ys);
+          });
+      
+          await tf.nextFrame();
+        }
+      }
+      
+      
+      async function learnCoefficients() {
+        const trueCoefficients = {k: 0.6, b: 0.8};
+        const trainingData = generateData(100, trueCoefficients);
+        //console.log("trainingData:",trainingData);
+      
+        // 模型训练
+        await train(trainingData.xs, trainingData.ys, numIterations);
+      
+        var xvals = await trainingData.xs.data();
+        var yvals = await trainingData.ys.data();
+
+        var sDatas = Array.from(sx).map((v,i) => {return [sx[i],sy[i]]});
+        
+        var [kk,bb]=[k.dataSync()[0],b.dataSync()[0]]
+        console.log("kk & bb:",kk,bb);
+        realK=kk*m;realB=kk*n+bb;
+        console.log("realK & realB:",realK,realB);
+
+        showResult(sDatas);
+
+        document.getElementById("resultDiv").innerText="斜率:"+realK.toFixed(3)+"\n"+"截距:"+realB.toFixed(3);
+        var myModal = new bootstrap.Modal(document.getElementById('myModal'), {keyboard: false});
+        myModal.show();
+      }
+      
+      function showResult(scatterData){
+        var dom = document.getElementById("container");
+        var myChart = echarts.init(dom);
+        function realFun(x){return realK*x+realB;}//https://wenku.baidu.com/view/ed39e43ff12d2af90242e6fc.html
+        var realData = [[min,realFun(min)],[max,realFun(max)]];
+      
+        var option = {
+            title: {
+                text: '线性函数拟合-基于tensorflow.js',
+                left: 'center'
+            },
+            tooltip: {trigger: 'axis',axisPointer: {type: 'cross'}},
+            xAxis: {
+                type: 'value',scale:true,
+                splitLine: {lineStyle: {type: 'dashed'}},
+            },
+            yAxis: {
+                type: 'value',scale:true,
+                splitLine: {lineStyle: {type: 'dashed'}}
+            },
+            series: [{
+                name: 'scatter',
+                type: 'scatter',
+                label: {
+                    emphasis: {
+                        show: true,
+                        position: 'left',
+                        textStyle: {
+                            color: 'blue',
+                            fontSize: 16
+                        }
+                    }
+                },
+                data: scatterData
+            }, {
+                name: 'line',
+                type: 'line',
+                showSymbol: false,
+                smooth: true,
+                data: realData,
+            }]
+        };
+      
+        if (option && typeof option === "object") {
+            myChart.setOption(option, true);
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="//rf.revolvermaps.com/0/0/3.js?i=58x4kn61rqm&amp;b=0&amp;s=40&amp;m=2&amp;cl=ffffff&amp;co=010020&amp;cd=aa0000&amp;v0=60&amp;v1=60&amp;r=1" async="async"></script>
+    <script>
+      var _hmt = _hmt || [];
+      (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?c92893cdabb11ad8ca139c33152761e2";
+        var s = document.getElementsByTagName("script")[0]; 
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  </body>
+</html>
